@@ -1,0 +1,44 @@
+# Ambiente virtual
+venv/
+venv_build/
+env/
+.env
+.venv
+
+# Cache do Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Distribuição / empacotamento
+dist/
+build/
+*.egg-info/
+
+# Arquivos temporários
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Cache e dados do bot
+*.pkl
+web_cache.json
+knowledge.json
+memories.pkl
+language_model.pkl
+
+# ChromeDriver e Selenium
+.wdm/
+drivers/
+
+# IDE e editores
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Ambiente Windows
+*.exe
+*.dll 
