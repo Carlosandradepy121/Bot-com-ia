@@ -56,30 +56,72 @@ echo Verificando versao do Python:
 echo.
 echo ===== VERIFICANDO DEPENDENCIAS =====
 
-echo Verificando PyQt6 (interface grafica)...
-%PYTHON_CMD% -c "import PyQt6" 2>nul
+REM Verificar e instalar pip se necessário
+echo Verificando pip...
+%PYTHON_CMD% -m pip --version >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo PyQt6 nao encontrado. Instalando...
-    %PYTHON_CMD% -m pip install PyQt6
-    if %ERRORLEVEL% NEQ 0 (
-        echo ERRO: Falha ao instalar PyQt6.
-        echo Tentando instalar manualmente...
-        %PYTHON_CMD% -m pip install --user --upgrade pip
-        %PYTHON_CMD% -m pip install --user PyQt6
-    )
+    echo Pip nao encontrado. Instalando...
+    %PYTHON_CMD% -m ensurepip --default-pip
+    %PYTHON_CMD% -m pip install --upgrade pip
 )
 
-echo Verificando outras dependencias...
-for %%m in (requests selenium bs4 webdriver_manager) do (
+REM Atualizar pip
+echo Atualizando pip...
+%PYTHON_CMD% -m pip install --upgrade pip
+
+REM Instalar numpy primeiro
+echo Instalando numpy...
+%PYTHON_CMD% -m pip install numpy==1.26.4
+if %ERRORLEVEL% NEQ 0 (
+    echo Tentando instalar numpy com --user...
+    %PYTHON_CMD% -m pip install --user numpy==1.26.4
+)
+
+REM Verificar se o numpy foi instalado corretamente
+%PYTHON_CMD% -c "import numpy" >nul 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    echo ERRO: Falha na instalacao do numpy. Tentando instalacao alternativa...
+    %PYTHON_CMD% -m pip uninstall -y numpy
+    %PYTHON_CMD% -m pip install --no-cache-dir numpy==1.26.4
+)
+
+REM Instalar PyQt6 e suas dependências
+echo Instalando PyQt6 e dependencias...
+%PYTHON_CMD% -m pip install PyQt6==6.6.1
+%PYTHON_CMD% -m pip install PyQt6-Qt6==6.6.1
+%PYTHON_CMD% -m pip install PyQt6-sip==13.6.0
+
+REM Verificar se o PyQt6 foi instalado corretamente
+%PYTHON_CMD% -c "from PyQt6.QtCore import QCoreApplication" >nul 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    echo ERRO: Falha na instalacao do PyQt6. Tentando instalacao alternativa...
+    %PYTHON_CMD% -m pip uninstall -y PyQt6 PyQt6-Qt6 PyQt6-sip
+    %PYTHON_CMD% -m pip install --no-cache-dir PyQt6==6.6.1
+    %PYTHON_CMD% -m pip install --no-cache-dir PyQt6-Qt6==6.6.1
+    %PYTHON_CMD% -m pip install --no-cache-dir PyQt6-sip==13.6.0
+)
+
+REM Instalar torch e outras dependências ML/AI
+echo Instalando torch e dependencias ML/AI...
+%PYTHON_CMD% -m pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
+%PYTHON_CMD% -m pip install transformers==4.38.2
+%PYTHON_CMD% -m pip install scikit-learn==1.4.0
+%PYTHON_CMD% -m pip install tensorboard==2.15.2
+
+REM Verificar e instalar outras dependências principais
+echo Verificando outras dependencias principais...
+for %%m in (
+    "qt-material==2.14"
+    "selenium>=4.17.2"
+    "webdriver-manager>=4.0.1"
+    "beautifulsoup4>=4.12.3"
+    "requests>=2.31.0"
+) do (
     echo Verificando %%m...
-    %PYTHON_CMD% -c "import %%m" 2>nul
+    %PYTHON_CMD% -m pip install %%m
     if !ERRORLEVEL! NEQ 0 (
-        echo Instalando %%m...
-        %PYTHON_CMD% -m pip install %%m
-        if !ERRORLEVEL! NEQ 0 (
-            echo Tentando instalar %%m com --user...
-            %PYTHON_CMD% -m pip install --user %%m
-        )
+        echo Tentando instalar %%m com --user...
+        %PYTHON_CMD% -m pip install --user %%m
     )
 )
 

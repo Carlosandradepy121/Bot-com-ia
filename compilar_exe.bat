@@ -113,33 +113,57 @@ echo [2/7] Instalando dependencias minimas...
 REM Atualizar pip
 python -m pip install --upgrade pip
 
-REM Instalar torch primeiro
-echo Instalando torch...
-python -m pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
+REM Instalar numpy primeiro
+echo Instalando numpy...
+python -m pip install numpy==1.26.4
+if %ERRORLEVEL% NEQ 0 (
+    echo Tentando instalar numpy com --user...
+    python -m pip install --user numpy==1.26.4
+)
 
-REM Instalar dependências ML/AI
-echo Instalando dependencias de ML/AI...
-python -m pip install numpy==2.2.5
-python -m pip install transformers==4.51.3
-python -m pip install scikit-learn==1.6.1
-python -m pip install tensorboard==2.19.0
+REM Verificar se o numpy foi instalado corretamente
+python -c "import numpy" >nul 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    echo ERRO: Falha na instalacao do numpy. Tentando instalacao alternativa...
+    python -m pip uninstall -y numpy
+    python -m pip install --no-cache-dir numpy==1.26.4
+)
+
+REM Instalar PyQt6 e suas dependências
+echo Instalando PyQt6 e dependencias...
+python -m pip install PyQt6==6.6.1
+python -m pip install PyQt6-Qt6==6.6.1
+python -m pip install PyQt6-sip==13.6.0
+
+REM Verificar se o PyQt6 foi instalado corretamente
+python -c "from PyQt6.QtCore import QCoreApplication" >nul 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    echo ERRO: Falha na instalacao do PyQt6. Tentando instalacao alternativa...
+    python -m pip uninstall -y PyQt6 PyQt6-Qt6 PyQt6-sip
+    python -m pip install --no-cache-dir PyQt6==6.6.1
+    python -m pip install --no-cache-dir PyQt6-Qt6==6.6.1
+    python -m pip install --no-cache-dir PyQt6-sip==13.6.0
+)
+
+REM Instalar torch e outras dependências ML/AI
+echo Instalando torch e dependencias ML/AI...
+python -m pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
+python -m pip install transformers==4.38.2
+python -m pip install scikit-learn==1.4.0
+python -m pip install tensorboard==2.15.2
 
 REM Instalar dependências para web scraping e navegação
 echo Instalando dependencias para navegacao web...
-python -m pip install requests>=2.28.0
-python -m pip install beautifulsoup4>=4.12.0
-python -m pip install selenium>=4.14.0
-python -m pip install webdriver-manager>=4.0.0
-
-REM Instalar dependências na ordem correta para evitar o aviso do qt_material
-echo Instalando PyQt6 primeiro...
-python -m pip install PyQt6==6.9.0
+python -m pip install requests>=2.31.0
+python -m pip install beautifulsoup4>=4.12.3
+python -m pip install selenium>=4.17.2
+python -m pip install webdriver-manager>=4.0.1
 
 echo Instalando outras dependencias essenciais...
-python -m pip install python-dotenv==1.1.0
-python -m pip install jinja2>=3.1.2
-python -m pip install pillow==11.2.1
-python -m pip install pyqtdarktheme==0.1.7
+python -m pip install python-dotenv==1.0.1
+python -m pip install jinja2>=3.1.3
+python -m pip install pillow==10.2.0
+python -m pip install pyqtdarktheme==2.1.0
 
 REM Instalar qt_material por último para garantir que o PyQt já esteja instalado
 echo Instalando qt_material (depois do PyQt)...
@@ -148,7 +172,7 @@ python -m pip install qt-material==2.14
 REM Instalar PyInstaller
 echo.
 echo [3/7] Instalando PyInstaller...
-python -m pip install pyinstaller
+python -m pip install pyinstaller>=6.3.0
 
 REM ===== PREPARAR RECURSOS =====
 echo.
@@ -216,12 +240,12 @@ REM Criar pasta dist novamente
 mkdir dist
 
 echo Compilando com PyInstaller...
-python -m PyInstaller --onefile --windowed --name="Self-Evolving-Bot" --add-data "resources;resources" --hidden-import=torch --hidden-import=transformers --hidden-import=numpy --hidden-import=scikit-learn --hidden-import=tensorboard --hidden-import=PIL --hidden-import=PyQt6 --hidden-import=qt_material --hidden-import=pyqtdarktheme --hidden-import=selenium --hidden-import=webdriver_manager --hidden-import=beautifulsoup4 --hidden-import=requests --collect-all=selenium --collect-all=webdriver_manager --add-data "improved_web_search.py;." --add-data "web_integration.py;." gui_interface.py
+python -m PyInstaller --onefile --windowed --name="Self-Evolving-Bot" --add-data "resources;resources" --hidden-import=torch --hidden-import=transformers --hidden-import=numpy --hidden-import=scikit-learn --hidden-import=tensorboard --hidden-import=PIL --hidden-import=PyQt6 --hidden-import=PyQt6.QtCore --hidden-import=PyQt6.QtGui --hidden-import=PyQt6.QtWidgets --hidden-import=qt_material --hidden-import=pyqtdarktheme --hidden-import=selenium --hidden-import=webdriver_manager --hidden-import=beautifulsoup4 --hidden-import=requests --collect-all=selenium --collect-all=webdriver_manager --add-data "improved_web_search.py;." --add-data "web_integration.py;." gui_interface.py
 
 if %ERRORLEVEL% NEQ 0 (
     echo.
     echo Primeira tentativa falhou. Tentando com menos opcoes...
-    python -m PyInstaller --onefile --windowed --name="Self-Evolving-Bot" --hidden-import=torch --hidden-import=transformers --hidden-import=numpy --hidden-import=requests --hidden-import=PyQt6 --hidden-import=selenium --hidden-import=webdriver_manager --hidden-import=beautifulsoup4 --add-data "improved_web_search.py;." --add-data "web_integration.py;." gui_interface.py
+    python -m PyInstaller --onefile --windowed --name="Self-Evolving-Bot" --hidden-import=torch --hidden-import=transformers --hidden-import=numpy --hidden-import=requests --hidden-import=PyQt6 --hidden-import=PyQt6.QtCore --hidden-import=PyQt6.QtGui --hidden-import=PyQt6.QtWidgets --hidden-import=selenium --hidden-import=webdriver_manager --hidden-import=beautifulsoup4 --add-data "improved_web_search.py;." --add-data "web_integration.py;." gui_interface.py
 )
 
 REM ===== LIMPEZA E FINALIZAÇÃO =====
@@ -241,57 +265,22 @@ if not exist dist\Self-Evolving-Bot.exe (
     call venv_build\Scripts\activate.bat
     
     REM Tentar compilação mais simples com as opções mínimas
-    python -m PyInstaller --clean --name "Self-Evolving-Bot" --onefile --noconsole --hidden-import=torch --hidden-import=requests --hidden-import=selenium --add-data "improved_web_search.py;." --add-data "web_integration.py;." gui_interface.py
+    python -m PyInstaller --clean --name "Self-Evolving-Bot" --onefile --noconsole --hidden-import=torch --hidden-import=requests --hidden-import=selenium --hidden-import=PyQt6 --hidden-import=PyQt6.QtCore --hidden-import=PyQt6.QtGui --hidden-import=PyQt6.QtWidgets --add-data "improved_web_search.py;." --add-data "web_integration.py;." gui_interface.py
     
     REM Desativar ambiente virtual novamente
     call venv_build\Scripts\deactivate.bat
     
     if not exist dist\Self-Evolving-Bot.exe (
         echo ERRO: Falha na compilacao do executavel.
+        echo Verifique os logs acima para mais detalhes.
         pause
         exit /b 1
-    ) else (
-        echo Ultima tentativa bem-sucedida!
     )
-) else (
-    echo Executavel criado com sucesso!
-)
-
-REM Limpar arquivos temporários
-if exist build (
-    rmdir /s /q build
-)
-
-REM Copiar arquivos de dados necessários
-if exist knowledge.json (
-    echo Copiando base de conhecimento para a pasta dist...
-    copy knowledge.json dist\
-)
-
-if exist memories.pkl (
-    echo Copiando memórias para a pasta dist...
-    copy memories.pkl dist\
-)
-
-if exist web_cache.json (
-    echo Copiando cache web para a pasta dist...
-    copy web_cache.json dist\
-)
-
-if exist language_model.pkl (
-    echo Copiando modelo de linguagem para a pasta dist...
-    copy language_model.pkl dist\
 )
 
 echo.
-echo ===================================================================
-echo                      COMPILACAO CONCLUIDA!
-echo ===================================================================
-echo.
+echo Compilacao concluida com sucesso!
 echo O executavel foi criado em: dist\Self-Evolving-Bot.exe
-echo.
-echo NOTA: Para usar a funcionalidade de pesquisa web, o Google Chrome 
-echo deve estar instalado no computador.
 echo.
 echo Pressione qualquer tecla para sair...
 pause >nul 
